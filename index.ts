@@ -1,45 +1,16 @@
-import { constructDag } from "./constructDag";
-import { topologicalSort } from "./topological";
+import { createWorkflow } from "./ayre";
+import { scrape, summarize, translate } from "./tools";
 
-const initialNodes = [
-  {
-    id: "ttt",
-    position: { x: 0, y: 200 },
-    data: { label: "2" },
-    type: "translate",
-  },
-  {
-    id: "1",
-    position: { x: 0, y: 0 },
-    data: { label: "1" },
-    type: "webScraper",
-  },
-  {
-    id: "b",
-    position: { x: 0, y: 0 },
-    data: { label: "1" },
-    type: "webScraper2",
-  },
-  {
-    id: "2",
-    position: { x: 0, y: 100 },
-    data: { label: "2" },
-    type: "summarize",
-  },
-];
+const workflow = createWorkflow({
+  tools: [
+    { name: "scrape", function: scrape },
+    { name: "summarize", function: summarize },
+    { name: "translate", function: translate },
+  ] as const,
+});
 
-const initialEdges = [
-  { id: "e1-2", source: "1", target: "2" },
-  { id: "e1-2", source: "b", target: "2" },
-  {
-    id: "e2-3",
-    source: "2",
-    target: "ttt",
-  },
-];
-
-const dag = constructDag(initialNodes, initialEdges);
-console.log(dag);
-const sortedNodes = topologicalSort(dag);
-
-console.log(sortedNodes); // Output: ["1", "2", "3"]
+workflow
+  .addJob({ name: "scrape", tool: "scrape" })
+  .addJob({ name: "summarize", tool: "summarize" })
+  .addJob({ name: "translate", tool: "translate" })
+  .run("https://example.com");
